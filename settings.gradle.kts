@@ -1,1 +1,1 @@
-rootProject.name = "metrics-java"
+rootProject.name = "client-jvm"

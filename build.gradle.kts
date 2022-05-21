@@ -3,7 +3,7 @@ plugins {
     id("java-library")
 }
 
-group = "com.victoriametrics"
+group = "com.victoriametrics.client"
 version = "1.0-SNAPSHOT"
 
 repositories {
