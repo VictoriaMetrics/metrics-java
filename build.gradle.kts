@@ -19,4 +19,10 @@ tasks {
     test {
         useJUnitPlatform()
     }
+
+    // To update, run: ./gradlew wrapper
+    wrapper {
+        distributionType = Wrapper.DistributionType.ALL
+        gradleVersion = "7.4.2"
+    }
 }
