@@ -1,7 +1,7 @@
-package com.virtoriametrics.validator;
+package com.virtoriametrics.client.validator;
 
-import com.victoriametrics.validator.InvalidMetricNameException;
-import com.victoriametrics.validator.MetricNameValidator;
+import com.victoriametrics.client.validator.InvalidMetricNameException;
+import com.victoriametrics.client.validator.MetricNameValidator;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
