@@ -17,7 +17,6 @@ Thumbs.db
 # JetBrains IDE
 /.idea/*
 !/.idea/copyright
-!/.idea/codeStyles
 !/.idea/inspectionProfiles
 
 # Log file
