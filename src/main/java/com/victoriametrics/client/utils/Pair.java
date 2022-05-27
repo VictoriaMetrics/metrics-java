@@ -1,4 +1,4 @@
-package com.victoriametrics.utils;
+package com.victoriametrics.client.utils;
 
 public class Pair<K, V> {
 

@@ -1,8 +1,9 @@
-package com.victoriametrics.metrics;
+package com.victoriametrics.client.metrics;
 
-import com.victoriametrics.utils.Pair;
+import com.victoriametrics.client.utils.Pair;
 import com.victoriametrics.validator.MetricNameValidator;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -12,16 +13,16 @@ import java.util.function.Supplier;
 /**
  * Collection of grouped metrics
  */
-public final class Collection {
+public final class MetricCollection {
 
     private final Map<String, Metric> collection = new ConcurrentHashMap<>();
     private final MetricNameValidator validator = new MetricNameValidator();
 
-    private Collection() {
+    private MetricCollection() {
     }
 
-    public static Collection create() {
-        return new Collection();
+    public static MetricCollection create() {
+        return new MetricCollection();
     }
 
     /**
@@ -209,7 +210,7 @@ public final class Collection {
         }
     }
 
-    interface NameBuilder<T> {
+    public interface NameBuilder<T> {
 
         LabelBuilder<T> name(String name);
 
@@ -217,7 +218,7 @@ public final class Collection {
 
     }
 
-    interface LabelBuilder<T> {
+    public interface LabelBuilder<T> {
         LabelBuilder<T> addLabel(String name, String value);
 
         MetricBuilder<T> then();
