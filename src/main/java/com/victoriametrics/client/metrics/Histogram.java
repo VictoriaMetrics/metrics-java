@@ -3,8 +3,12 @@ package com.victoriametrics.client.metrics;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Histogram for non-negative values with automatically created buckets.
+ */
 public class Histogram implements Metric {
 
     private final static int E_10_MIN = -9;
@@ -21,22 +25,27 @@ public class Histogram implements Metric {
 
     private final static String RANGE_PATTERN = "%.3e";
 
-    private final long[][] buckets = new long[DECIMAL_BUCKETS_COUNT][BUCKETS_PER_DECIMAL];
-    private long lower;
-    private long upper;
-    private double sum;
-    private final List<String> ranges = new ArrayList<>();
+    private final static List<String> ranges = new ArrayList<>();
 
     private final static String lowerRangeBucket = String.format("0..." + RANGE_PATTERN, Math.pow(10, E_10_MIN));
+
     private final static String upperRangeBucket = String.format(RANGE_PATTERN + "...+Inf", Math.pow(10, E_10_MAX));
+
+    private final long[] buckets = new long[BUCKETS_COUNT];
+    private long lower;
+    private long upper;
+    private final DoubleAdder sum = new DoubleAdder();
 
     private final String name;
 
     private final ReentrantLock mutex = new ReentrantLock();
 
+    static {
+        createBucketRanges();
+    }
+
     public Histogram(String name) {
         this.name = name;
-        createBucketRanges();
     }
 
     /**
@@ -46,13 +55,11 @@ public class Histogram implements Metric {
         try {
             mutex.lock();
 
-            for (long[] bucket : buckets) {
-                Arrays.fill(bucket, 0);
-            }
+            Arrays.fill(buckets, 0);
 
             lower = 0;
             upper = 0;
-            sum = 0;
+            sum.reset();
         } finally {
             mutex.unlock();
         }
@@ -73,7 +80,7 @@ public class Histogram implements Metric {
         try {
             mutex.lock();
 
-            sum += value;
+            sum.add(value);
 
             if (bucketIndex < 0) {
                 lower++;
@@ -83,8 +90,7 @@ public class Histogram implements Metric {
                 int index = (int) bucketIndex;
                 int decimalBucketIndex = index / BUCKETS_PER_DECIMAL;
                 int offset = index % BUCKETS_PER_DECIMAL;
-
-                buckets[decimalBucketIndex][offset]++;
+                buckets[decimalBucketIndex * offset]++;
             }
         } finally {
             mutex.unlock();
@@ -102,14 +108,11 @@ public class Histogram implements Metric {
                 visitor.value(lowerRangeBucket, lower);
             }
 
-            for (int bucketIndex = 0; bucketIndex < DECIMAL_BUCKETS_COUNT; bucketIndex++) {
-                for (int offset = 0; offset < BUCKETS_PER_DECIMAL; offset++) {
-                    long value = buckets[bucketIndex][offset];
-                    if (value > 0) {
-                        int index = bucketIndex * BUCKETS_PER_DECIMAL + offset;
-                        final String range = getRange(index);
-                        visitor.value(range, buckets[bucketIndex][offset]);
-                    }
+            for (int index = 0; index < BUCKETS_COUNT; index++) {
+                final long value = buckets[index];
+                if (value > 0) {
+                    final String range = getRange(index);
+                    visitor.value(range, value);
                 }
             }
 
@@ -131,18 +134,18 @@ public class Histogram implements Metric {
     }
 
     public double getSum() {
-        return sum;
+        return sum.sum();
     }
 
-    private void createBucketRanges() {
+    private static void createBucketRanges() {
         double value = Math.pow(10, E_10_MIN);
-        String first = String.format(RANGE_PATTERN, value);
+        String start = String.format(RANGE_PATTERN, value);
 
         for (int i = 0; i < BUCKETS_COUNT; i++) {
             value *= MULTIPLIER;
-            String last = String.format(RANGE_PATTERN, value);
-            ranges.add(String.format("%s...%s", first, last));
-            first = last;
+            String end = String.format(RANGE_PATTERN, value);
+            ranges.add(start + "..." + end);
+            start = end;
         }
     }
 
