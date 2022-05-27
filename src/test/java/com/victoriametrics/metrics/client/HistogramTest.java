@@ -1,5 +1,6 @@
-package com.victoriametrics.metrics;
+package com.victoriametrics.metrics.client;
 
+import com.victoriametrics.client.metrics.Histogram;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

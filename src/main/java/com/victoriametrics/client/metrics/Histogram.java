@@ -1,6 +1,4 @@
-package com.victoriametrics.metrics;
-
-import com.victoriametrics.utils.Pair;
+package com.victoriametrics.client.metrics;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,8 +80,11 @@ public class Histogram implements Metric {
             } else if (bucketIndex > BUCKETS_COUNT) {
                 upper++;
             } else {
-                Pair<Integer, Integer> coordinates = calculateCoordinates(bucketIndex);
-                buckets[coordinates.getKey()][coordinates.getValue()]++;
+                int index = (int) bucketIndex;
+                int decimalBucketIndex = index / BUCKETS_PER_DECIMAL;
+                int offset = index % BUCKETS_PER_DECIMAL;
+
+                buckets[decimalBucketIndex][offset]++;
             }
         } finally {
             mutex.unlock();
@@ -133,14 +134,6 @@ public class Histogram implements Metric {
         return sum;
     }
 
-    private Pair<Integer, Integer> calculateCoordinates(double bucketIndex) {
-        int index = (int) bucketIndex;
-        int decimalBucketIndex = index / BUCKETS_PER_DECIMAL;
-        int offset = index % BUCKETS_PER_DECIMAL;
-
-        return Pair.of(decimalBucketIndex, offset);
-    }
-
     private void createBucketRanges() {
         double value = Math.pow(10, E_10_MIN);
         String first = String.format(RANGE_PATTERN, value);
@@ -154,7 +147,7 @@ public class Histogram implements Metric {
     }
 
     @FunctionalInterface
-    interface Visitor {
+    public interface Visitor {
         void value(String vmrange, long count);
     }
 }
