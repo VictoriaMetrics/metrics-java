@@ -31,7 +31,9 @@ class CounterTest {
 
         Counter counter = new Counter(name);
 
-        counter.set(10);
+        for(int i = 0; i < 10;i++) {
+            counter.inc();
+        }
         counter.dec();
         assertEquals(9, counter.get());
     }
