@@ -1,6 +1,6 @@
 package com.victoriametrics.client.metrics;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * Counter metric.
@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class Counter implements Metric {
 
-    private final AtomicLong value = new AtomicLong(0);
+    private final LongAdder value = new LongAdder();
     private final String name;
 
     public Counter(String name) {
@@ -21,24 +21,39 @@ public class Counter implements Metric {
         return name;
     }
 
+    /**
+     * Increment counter.
+     */
     public void inc() {
-        value.incrementAndGet();
+        this.value.increment();
     }
 
+    /**
+     * Increment counter by {@code value}
+     * @param value The value by which counter will be increased
+     */
     public void inc(long value) {
-        this.value.addAndGet(value);
+        this.value.add(value);
     }
 
+    /**
+     * Increment counter by {@code value}
+     */
     public void dec() {
-        value.decrementAndGet();
+        this.value.decrement();
     }
 
-    public void set(long value) {
-        this.value.set(value);
+    /**
+     * Decrement counter by {@code value}
+     * @param value The value by which counter will be decreased
+     */
+
+    public void dec(long value) {
+        this.value.add(-value);
     }
 
     public long get() {
-        return value.get();
+        return value.sum();
     }
 
 }
