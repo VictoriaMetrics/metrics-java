@@ -1,12 +1,8 @@
 package com.victoriametrics.client.metrics;
 
-import com.victoriametrics.client.utils.Pair;
 import com.victoriametrics.validator.MetricNameValidator;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -140,7 +136,7 @@ public final class MetricCollection {
 
     public static class DefaultBuilder<T> implements NameBuilder<T> {
         private String name;
-        private final Set<Pair<String, String>> labels = new HashSet<>();
+        private final Map<String, String> labels = new LinkedHashMap<>();
 
         private final MetricBuilder<T> metricBuilder;
 
@@ -168,22 +164,20 @@ public final class MetricCollection {
             int size = labels.size();
 
             StringBuilder sb = new StringBuilder("{");
-            int i = 0;
-            for (Pair<String, String> pair : labels) {
-                String name = pair.getKey();
-                String value = pair.getValue();
 
+            final int[] i = {0};
+            labels.forEach((name, value) -> {
                 sb.append(name)
                         .append("=")
                         .append(("\""))
                         .append(value)
                         .append(("\""));
 
-                if (i < size - 1) {
+                if (i[0] < size - 1) {
                     sb.append(", ");
                 }
-                i++;
-            }
+                i[0]++;
+            });
 
             sb.append("}");
             return sb.toString();
@@ -199,7 +193,7 @@ public final class MetricCollection {
 
             @Override
             public LabelBuilder<T> addLabel(String name, String value) {
-                labels.add(Pair.of(name, value));
+                labels.put(name, value);
                 return this;
             }
 
