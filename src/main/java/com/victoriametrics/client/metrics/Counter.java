@@ -1,4 +1,4 @@
-package com.victoriametrics.metrics;
+package com.victoriametrics.client.metrics;
 
 import java.util.concurrent.atomic.AtomicLong;
 

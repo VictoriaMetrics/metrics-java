@@ -1,4 +1,4 @@
-package com.victoriametrics.metrics;
+package com.victoriametrics.client.metrics;
 
 /**
  * Prometheus-compatible metric.
