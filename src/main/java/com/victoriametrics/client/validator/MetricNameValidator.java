@@ -48,7 +48,7 @@ public class MetricNameValidator {
         validateMetricName(metricName);
 
         if (!name.endsWith("}")) {
-            throw new InvalidMetricNameException(format("No closing curly brace %s", name));
+            throw new InvalidMetricNameException("No closing curly brace " + name);
         }
 
         String labels = name.substring(index + 1, name.lastIndexOf("}"));
@@ -63,7 +63,7 @@ public class MetricNameValidator {
         for (String label : labels) {
             int delimiterIndex = label.indexOf("=");
             if (delimiterIndex < 0) {
-                throw new InvalidMetricNameException(format("Missing delimiter '=' after '%s'", label));
+                throw new InvalidMetricNameException("Missing delimiter '=' after '" + label + ",");
             }
 
             String labelName = label.substring(0, delimiterIndex).trim();
@@ -72,11 +72,16 @@ public class MetricNameValidator {
             String labelValue = label.substring(delimiterIndex + 1);
 
             if (labelValue.isEmpty() || labelValue.charAt(0) != '"') {
-                throw new InvalidMetricNameException(format("Missing starring '\"' for '%s' label, '%s'", labelName, labelValue));
+                String message = "Missing starring '\"' for '" +
+                        labelName + "' label, '" + labelValue + "'";
+
+                throw new InvalidMetricNameException(message);
             }
 
             if (!labelValue.substring(1).contains("\"")) {
-                throw new InvalidMetricNameException(format("Missing tailing '\"' for '%s' label, '%s' ", labelName, labelValue));
+                String message = "Missing tailing '\"' for '" +
+                        labelName + "' label, '" + labelValue + "'";
+                throw new InvalidMetricNameException(message);
             }
         }
     }
@@ -84,14 +89,14 @@ public class MetricNameValidator {
     private void validateMetricName(String name) throws InvalidMetricNameException {
         Matcher matcher = metricNamePattern.matcher(name);
         if (!matcher.matches()) {
-            throw new InvalidMetricNameException(format("Invalid metric name %s", name));
+            throw new InvalidMetricNameException("Invalid metric name " + name);
         }
     }
 
     private void validateLabelName(String name) {
         Matcher matcher = labelPattern.matcher(name);
         if (!matcher.matches()) {
-            throw new InvalidMetricNameException(format("Invalid label name %s", name));
+            throw new InvalidMetricNameException("Invalid label name " + name);
         }
     }
 
