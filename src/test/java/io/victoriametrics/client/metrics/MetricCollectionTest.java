@@ -1,10 +1,6 @@
-package com.victoriametrics.metrics.client;
+package io.victoriametrics.client.metrics;
 
-import com.victoriametrics.client.metrics.MetricCollection;
-import com.victoriametrics.client.metrics.Counter;
-import com.victoriametrics.client.metrics.Gauge;
-import com.victoriametrics.client.metrics.Histogram;
-import com.victoriametrics.validator.InvalidMetricNameException;
+import io.victoriametrics.client.validator.InvalidMetricNameException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,17 +11,17 @@ public class MetricCollectionTest {
     public void createCounterMetricWithBuilder() {
         MetricCollection collection = MetricCollection.create();
         Counter counterNoLabels = collection.createCounter()
-                .name("foo")
-                .then()
-                .register();
+                                            .name("foo")
+                                            .then()
+                                            .register();
 
         assertEquals("foo", counterNoLabels.getName());
 
         Counter counterWithLabels = collection.createCounter()
-                .name("foo")
-                .addLabel("bar", "value1")
-                .then()
-                .register();
+                                              .name("foo")
+                                              .addLabel("bar", "value1")
+                                              .then()
+                                              .register();
 
         assertEquals("foo{bar=\"value1\"}", counterWithLabels.getName());
     }
@@ -34,19 +30,19 @@ public class MetricCollectionTest {
     public void createGaugeMetricWithBuilder() {
         MetricCollection collection = MetricCollection.create();
         Gauge gaugeNoLabels = collection.createGauge()
-                .withSupplier(() -> 1.0)
-                .name("foo")
-                .then()
-                .register();
+                                        .withSupplier(() -> 1.0)
+                                        .name("foo")
+                                        .then()
+                                        .register();
 
         assertEquals("foo", gaugeNoLabels.getName());
 
         Gauge gaugeWithLabels = collection.createGauge()
-                .withSupplier(() -> 1.0)
-                .name("foo")
-                .addLabel("bar", "value1")
-                .then()
-                .register();
+                                          .withSupplier(() -> 1.0)
+                                          .name("foo")
+                                          .addLabel("bar", "value1")
+                                          .then()
+                                          .register();
 
         assertEquals("foo{bar=\"value1\"}", gaugeWithLabels.getName());
     }
@@ -55,17 +51,17 @@ public class MetricCollectionTest {
     public void createHistogramMetricWithBuilder() {
         MetricCollection collection = MetricCollection.create();
         Histogram histogramNoLabels = collection.createHistogram()
-                .name("foo")
-                .then()
-                .register();
+                                                .name("foo")
+                                                .then()
+                                                .register();
 
         assertEquals("foo", histogramNoLabels.getName());
 
         Histogram histogramWithLabels = collection.createHistogram()
-                .name("foo")
-                .addLabel("bar", "value1")
-                .then()
-                .register();
+                                                  .name("foo")
+                                                  .addLabel("bar", "value1")
+                                                  .then()
+                                                  .register();
 
         assertEquals("foo{bar=\"value1\"}", histogramWithLabels.getName());
     }

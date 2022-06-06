@@ -1,4 +1,4 @@
-package com.victoriametrics.client.metrics;
+package io.victoriametrics.client.metrics;
 
 import java.util.concurrent.atomic.LongAdder;
 

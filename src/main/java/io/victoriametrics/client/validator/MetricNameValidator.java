@@ -1,4 +1,4 @@
-package com.victoriametrics.client.validator;
+package io.victoriametrics.client.validator;
 
 import java.util.Objects;
 import java.util.regex.Matcher;

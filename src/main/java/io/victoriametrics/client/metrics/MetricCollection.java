@@ -1,6 +1,6 @@
-package com.victoriametrics.client.metrics;
+package io.victoriametrics.client.metrics;
 
-import com.victoriametrics.validator.MetricNameValidator;
+import io.victoriametrics.client.validator.MetricNameValidator;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
