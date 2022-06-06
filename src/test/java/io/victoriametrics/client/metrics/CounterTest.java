@@ -1,6 +1,5 @@
-package com.victoriametrics.metrics.client;
+package io.victoriametrics.client.metrics;
 
-import com.victoriametrics.client.metrics.Counter;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
