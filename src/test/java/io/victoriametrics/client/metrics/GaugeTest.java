@@ -1,6 +1,5 @@
-package com.victoriametrics.metrics.client;
+package io.victoriametrics.client.metrics;
 
-import com.victoriametrics.client.metrics.Gauge;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.DoubleAdder;

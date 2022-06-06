@@ -1,9 +1,5 @@
-package com.victoriametrics.metrics.client;
+package io.victoriametrics.client.metrics;
 
-import com.victoriametrics.client.metrics.MetricCollection;
-import com.victoriametrics.client.metrics.Counter;
-import com.victoriametrics.client.metrics.Gauge;
-import com.victoriametrics.client.metrics.Histogram;
 import com.victoriametrics.validator.InvalidMetricNameException;
 import org.junit.jupiter.api.Test;
 
