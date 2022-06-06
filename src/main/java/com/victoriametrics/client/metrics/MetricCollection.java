@@ -56,8 +56,10 @@ public final class MetricCollection {
      * @return {@link Counter} if metric name is valid.
      */
     public Counter getOrCreateCounter(String name) {
-        validator.validate(name);
-        return (Counter) collection.computeIfAbsent(name, Counter::new);
+        return (Counter) collection.computeIfAbsent(name, key -> {
+            validator.validate(key);
+            return new Counter(key);
+        });
     }
 
     /**
@@ -66,8 +68,10 @@ public final class MetricCollection {
      * @return {@link Gauge} if metric name is valid.
      */
     public Gauge getOrCreateGauge(String name, Supplier<Double> supplier) {
-        validator.validate(name);
-        return (Gauge) collection.computeIfAbsent(name, key -> new Gauge(key, supplier));
+        return (Gauge) collection.computeIfAbsent(name, key -> {
+            validator.validate(key);
+            return new Gauge(key, supplier);
+        });
     }
 
     /**
@@ -76,8 +80,10 @@ public final class MetricCollection {
      * @return {@link Histogram} if metric name is valid.
      */
     public Histogram getOrCreateHistogram(String name) {
-        validator.validate(name);
-        return (Histogram) collection.computeIfAbsent(name, Histogram::new);
+        return (Histogram) collection.computeIfAbsent(name, key -> {
+            validator.validate(name);
+            return new Histogram(key);
+        });
     }
 
     public interface MetricBuilder<T> {
