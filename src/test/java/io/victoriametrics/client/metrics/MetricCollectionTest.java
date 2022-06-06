@@ -1,6 +1,6 @@
 package io.victoriametrics.client.metrics;
 
-import com.victoriametrics.validator.InvalidMetricNameException;
+import io.victoriametrics.client.validator.InvalidMetricNameException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
