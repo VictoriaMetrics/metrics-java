@@ -8,4 +8,6 @@ public interface Metric {
 
     String getName();
 
+    void accept(MetricVisitor visitor);
+
 }

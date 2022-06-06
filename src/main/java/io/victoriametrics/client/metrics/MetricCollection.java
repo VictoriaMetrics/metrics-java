@@ -1,7 +1,10 @@
 package io.victoriametrics.client.metrics;
 
+import io.victoriametrics.client.serialization.PrometheusSerializationStrategy;
+import io.victoriametrics.client.serialization.SerializationStrategy;
 import io.victoriametrics.client.validator.MetricNameValidator;
 
+import java.io.Writer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -13,6 +16,8 @@ public final class MetricCollection {
 
     private final Map<String, Metric> collection = new ConcurrentHashMap<>();
     private final MetricNameValidator validator = new MetricNameValidator();
+
+    private SerializationStrategy serializationStrategy = new PrometheusSerializationStrategy();
 
     private MetricCollection() {
     }
@@ -84,6 +89,15 @@ public final class MetricCollection {
             validator.validate(name);
             return new Histogram(key);
         });
+    }
+
+    /**
+     * Write metricts
+     * @param writer
+     */
+    public void write(Writer writer) {
+        Collection<Metric> metrics = collection.values();
+        serializationStrategy.serialize(metrics, writer);
     }
 
     public interface MetricBuilder<T> {

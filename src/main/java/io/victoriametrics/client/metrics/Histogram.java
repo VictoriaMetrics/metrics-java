@@ -133,6 +133,11 @@ public class Histogram implements Metric {
         return name;
     }
 
+    @Override
+    public void accept(MetricVisitor visitor) {
+        visitor.visit(this);
+    }
+
     public double getSum() {
         return sum.sum();
     }

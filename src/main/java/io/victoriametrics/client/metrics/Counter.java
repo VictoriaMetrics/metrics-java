@@ -21,6 +21,11 @@ public class Counter implements Metric {
         return name;
     }
 
+    @Override
+    public void accept(MetricVisitor visitor) {
+        visitor.visit(this);
+    }
+
     /**
      * Increment counter.
      */

@@ -24,4 +24,9 @@ public class Gauge implements Metric {
     public String getName() {
         return name;
     }
+
+    @Override
+    public void accept(MetricVisitor visitor) {
+        visitor.visit(this);
+    }
 }
