@@ -1,4 +1,4 @@
-package com.victoriametrics.client.validator;
+package io.victoriametrics.client.validator;
 
 public class InvalidMetricNameException extends RuntimeException {
 
