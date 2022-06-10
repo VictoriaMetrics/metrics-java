@@ -28,14 +28,13 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
                 String prefix = counter.getName();
                 long value = counter.get();
 
-                StringBuilder sb = new StringBuilder(prefix)
-                        .append(" ")
-                        .append(value)
-                        .append("\n");
                 try {
-                    writer.write(sb.toString());
+                    writer.write(prefix);
+                    writer.write(" ");
+                    writer.write(String.valueOf(value));
+                    writer.write("\n");
                 } catch (IOException e) {
-                    throw new MetricSerializationException("Unable to serialize Counter metric: " + sb, e);
+                    throw new MetricSerializationException("Unable to serialize Counter metric" + prefix, e);
                 }
             }
 
@@ -44,14 +43,13 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
                 String prefix = gauge.getName();
                 double value = gauge.get();
 
-                StringBuilder sb = new StringBuilder(prefix)
-                        .append(" ")
-                        .append(value)
-                        .append("\n");
                 try {
-                    writer.write(sb.toString());
+                    writer.write(prefix);
+                    writer.write(" ");
+                    writer.write(String.valueOf(value));
+                    writer.write("\n");
                 } catch (IOException e) {
-                    throw new MetricSerializationException("Unable to serialize Gauge metric: " + sb, e);
+                    throw new MetricSerializationException("Unable to serialize Gauge metric: " + prefix, e);
                 }
             }
 
@@ -101,10 +99,10 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
 
     private String applyTag(String name, String tag) {
         if (!name.endsWith("}")) {
-            return String.format("%s{%s}", name, tag);
+            return name + "{" + tag + "}";
         }
 
-        return String.format("%s,%s}", name.substring(0, name.length() - 1), tag);
+        return name.substring(0, name.length() - 1) + "," + tag + "}";
     }
 
     private Pair<String, String> splitMetricName(String name) {
