@@ -9,6 +9,10 @@ import io.victoriametrics.client.utils.Pair;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.LongAdder;
 
 /**
@@ -62,18 +66,23 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
         LongAdder countTotal = new LongAdder();
 
         histogram.visit((vmrange, count) -> {
-            String tag = String.format("vmrange=%s", vmrange);
-            String metricName = applyTag(prefix, tag);
-            Pair<String, String> metricPair = splitMetricName(metricName);
-
+            Pair<String, String> metricPair = splitMetricName(prefix);
             String name = metricPair.getKey();
             String labels = metricPair.getValue();
 
-            String value = String.format("%s_bucket%s %d\n", name, labels, count);
+            final String tag = "vmrange=\"" + vmrange + "\"";
+            labels = labels.isEmpty() ? tag : labels + "," + tag;
+
             try {
-                writer.write(value);
+                writer.write(name);
+                writer.write("_bucket");
+                writer.write("{");
+                writer.write(labels);
+                writer.write("}");
+                writer.write(Double.toString(count));
+                writer.write("\n");
             }  catch (IOException e) {
-                throw new MetricSerializationException("Unable to serialize Histogram metric: " + value, e);
+                throw new MetricSerializationException("Unable to serialize Histogram metric: " + prefix, e);
             }
 
             countTotal.increment();
@@ -85,19 +94,41 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
         double sum = histogram.getSum();
 
         try {
-            writer.write(String.format("%s_sum%s %f\n", name, labels, sum));
-            writer.write(String.format("%s_count%s %d\n", name, labels, countTotal.sum()));
+            writeSum(writer, name, labels, sum);
+            writeCount(writer, name, labels, countTotal.sum());
         } catch (IOException e) {
             throw new MetricSerializationException("Unable to serialize Histogram sum", e);
         }
     }
 
-    private String applyTag(String name, String tag) {
-        if (!name.endsWith("}")) {
-            return name + "{" + tag + "}";
+    private void writeSum(Writer writer, String name, String labels, double sum) throws IOException {
+        writer.write(name);
+        writer.write("_sum");
+
+        if (!labels.isEmpty()) {
+            writer.write("{");
+            writer.write(labels);
+            writer.write("}");
         }
 
-        return name.substring(0, name.length() - 1) + "," + tag + "}";
+        writer.write(" ");
+        writer.write(Double.toString(sum));
+        writer.write("\n");
+    }
+
+    private void writeCount(Writer writer, String name, String labels, double sum) throws IOException {
+        writer.write(name);
+        writer.write("_count");
+
+        if (!labels.isEmpty()) {
+            writer.write("{");
+            writer.write(labels);
+            writer.write("}");
+        }
+
+        writer.write(" ");
+        writer.write(Double.toString(sum));
+        writer.write("\n");
     }
 
     private Pair<String, String> splitMetricName(String name) {
@@ -106,8 +137,9 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
             return Pair.of(name, "");
         }
 
+        int tailingIndex = name.indexOf("}");
         String metricName = name.substring(0, index);
-        String labels = name.substring(index);
+        String labels = name.substring(index + 1, tailingIndex);
         return Pair.of(metricName, labels);
     }
 }
