@@ -27,16 +27,6 @@ public final class MetricCollection {
     }
 
     /**
-     * Get metric instance from the collection.
-     * @param name A metric name.
-     * @return Instance of metric. If a metric not found return null
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends Metric> T getMetric(String name) {
-        return (T) collection.get(name);
-    }
-
-    /**
      * Size of collection.
      */
     public int size() {
@@ -97,7 +87,15 @@ public final class MetricCollection {
      */
     public void write(Writer writer) {
         Collection<Metric> metrics = collection.values();
-        serializationStrategy.serialize(metrics, writer);
+        metrics.forEach(metric -> serializationStrategy.serialize(metric, writer));
+    }
+
+    /**
+     * Set strategy which applies when serialize a metric.
+     * @param strategy  Implementation of serialization strategy
+     */
+    public void setSerializationStrategy(SerializationStrategy strategy) {
+        this.serializationStrategy = strategy;
     }
 
     public interface MetricBuilder<T> {

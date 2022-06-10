@@ -14,6 +14,6 @@ import java.util.Collection;
  */
 public interface SerializationStrategy {
 
-    void serialize(Collection<Metric> metrics, Writer writer);
+    void serialize(Metric metric, Writer writer);
 
 }

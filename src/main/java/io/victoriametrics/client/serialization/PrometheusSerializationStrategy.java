@@ -4,16 +4,11 @@
 
 package io.victoriametrics.client.serialization;
 
-import io.victoriametrics.client.metrics.MetricVisitor;
-import io.victoriametrics.client.metrics.Counter;
-import io.victoriametrics.client.metrics.Gauge;
-import io.victoriametrics.client.metrics.Histogram;
-import io.victoriametrics.client.metrics.Metric;
+import io.victoriametrics.client.metrics.*;
 import io.victoriametrics.client.utils.Pair;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Collection;
 import java.util.concurrent.atomic.LongAdder;
 
 /**
@@ -21,7 +16,7 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class PrometheusSerializationStrategy implements SerializationStrategy {
 
-    public void serialize(Collection<Metric> metrics, Writer writer) {
+    public void serialize(Metric metric, Writer writer) {
         MetricVisitor visitor = new MetricVisitor() {
             @Override
             public void visit(Counter counter) {
@@ -59,7 +54,7 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
             }
         };
 
-        metrics.forEach(metric -> metric.accept(visitor));
+        metric.accept(visitor);
     }
 
     private void writeHistogram(Writer writer, Histogram histogram) {
