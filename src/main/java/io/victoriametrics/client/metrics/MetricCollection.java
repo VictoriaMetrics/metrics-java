@@ -1,7 +1,10 @@
 package io.victoriametrics.client.metrics;
 
+import io.victoriametrics.client.serialization.PrometheusSerializationStrategy;
+import io.victoriametrics.client.serialization.SerializationStrategy;
 import io.victoriametrics.client.validator.MetricNameValidator;
 
+import java.io.Writer;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -14,21 +17,13 @@ public final class MetricCollection {
     private final Map<String, Metric> collection = new ConcurrentHashMap<>();
     private final MetricNameValidator validator = new MetricNameValidator();
 
+    private SerializationStrategy serializationStrategy = new PrometheusSerializationStrategy();
+
     private MetricCollection() {
     }
 
     public static MetricCollection create() {
         return new MetricCollection();
-    }
-
-    /**
-     * Get metric instance from the collection.
-     * @param name A metric name.
-     * @return Instance of metric. If a metric not found return null
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends Metric> T getMetric(String name) {
-        return (T) collection.get(name);
     }
 
     /**
@@ -84,6 +79,23 @@ public final class MetricCollection {
             validator.validate(name);
             return new Histogram(key);
         });
+    }
+
+    /**
+     * Write metricts
+     * @param writer
+     */
+    public void write(Writer writer) {
+        Collection<Metric> metrics = collection.values();
+        metrics.forEach(metric -> serializationStrategy.serialize(metric, writer));
+    }
+
+    /**
+     * Set strategy which applies when serialize a metric.
+     * @param strategy  Implementation of serialization strategy
+     */
+    public void setSerializationStrategy(SerializationStrategy strategy) {
+        this.serializationStrategy = strategy;
     }
 
     public interface MetricBuilder<T> {

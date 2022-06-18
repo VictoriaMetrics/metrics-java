@@ -106,15 +106,4 @@ public class MetricCollectionTest {
         assertEquals(2, counter2.get());
         assertEquals(2, counter3.get());
     }
-
-    @Test
-    public void tesGetMetricByName() {
-        MetricCollection collection = MetricCollection.create();
-        collection.getOrCreateCounter("foo");
-        Counter counter = collection.getMetric("foo");
-        assertNotNull(counter);
-
-        Gauge gauge = collection.getMetric("bar");
-        assertNull(gauge);
-    }
 }
