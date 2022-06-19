@@ -82,6 +82,32 @@ public final class MetricCollection {
     }
 
     /**
+     * Get {@link Summary} metric or create a new one if it doesn't exist.
+     * Creates {@link Summary} with default configuration.
+     * @param name A metric name
+     * @return {@link Histogram} if metric name is valid.
+     */
+    public Summary getOrCreateSummary(String name) {
+        return (Summary) collection.computeIfAbsent(name, key-> {
+            validator.validate(key);
+            return new Summary(key);
+        });
+    }
+
+    /**
+     * Get {@link Summary} metric or create a new one if it doesn't exist.
+     * Creates configurable  {@link Summary} if doesn't exists.
+     * @param name A metric name
+     * @return {@link Histogram} if metric name is valid.
+     */
+    public Summary getOrCreateSummary(String name, double[] qualtiles, int windows, long windowDurationSeconds) {
+        return (Summary) collection.computeIfAbsent(name, key-> {
+            validator.validate(key);
+            return new Summary(key, qualtiles, windows, windowDurationSeconds);
+        });
+    }
+
+    /**
      * Write metricts
      * @param writer
      */

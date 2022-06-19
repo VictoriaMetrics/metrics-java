@@ -9,10 +9,7 @@ import io.victoriametrics.client.utils.Pair;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.SortedMap;
 import java.util.concurrent.atomic.LongAdder;
 
 /**
@@ -56,6 +53,11 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
             public void visit(Histogram histogram) {
                 writeHistogram(writer, histogram);
             }
+
+            @Override
+            public void visit(Summary summary) {
+                writeSummary(writer, summary);
+            }
         };
 
         metric.accept(visitor);
@@ -98,6 +100,40 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
             writeCount(writer, name, labels, countTotal.sum());
         } catch (IOException e) {
             throw new MetricSerializationException("Unable to serialize Histogram sum", e);
+        }
+    }
+
+    private void writeSummary(Writer writer, Summary summary) {
+        String prefix = summary.getName();
+
+        Pair<String, String> metricPair = splitMetricName(prefix);
+        String name = metricPair.getKey();
+        final String labels = metricPair.getValue();
+
+        double sum = summary.getSum();
+        double count = summary.getCount();
+
+        SortedMap<Double, Double> values =  summary.getQuantilValues();
+        values.forEach((quantile, value) -> {
+            final String tag = "quantile=\"" + quantile + "\"";
+
+            try {
+                writer.write(name);
+                writer.write("{");
+                writer.write(labels.isEmpty() ? tag : labels + "," + tag);
+                writer.write("}");
+                writer.write(Double.toString(value));
+                writer.write("\n");
+            } catch (IOException e) {
+                throw new MetricSerializationException("Unable to serialize Sumamry metric " + prefix, e);
+            }
+        });
+
+        try {
+            writeSum(writer, name, labels, sum);
+            writeCount(writer, name, labels, count);
+        } catch (IOException e) {
+            throw new MetricSerializationException("Unable to serialize Sumamry", e);
         }
     }
 
