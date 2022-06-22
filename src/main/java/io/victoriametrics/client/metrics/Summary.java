@@ -141,7 +141,7 @@ public class Summary implements Metric {
 
     private static class TimeWindow {
 
-        private final List<Double> samples = new ArrayList<>();
+        private final List<Double> samples = new LinkedList<>();
 
         public void insert(double value) {
            samples.add(value);
