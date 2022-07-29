@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.atomic.LongAdder;
 
 /**
- *  {@link Summary} can be used to monitor distributions like latancies or request size.
+ * Summary metric is used to compute metric quantiles.
  * @author Valery Kantor
  */
 public class Summary implements Metric {
@@ -44,7 +44,7 @@ public class Summary implements Metric {
 
     private void validateQuantiles(double[] quantiles) {
         for (double quantile : quantiles) {
-            if (quantile < 0 || quantile > 1 ) throw new IllegalArgumentException("Quantile must be in range 0 and 1");
+            if (quantile < 0.0 || quantile > 1.0 ) throw new IllegalArgumentException("Quantile must be in range 0 and 1");
         }
     }
 
@@ -66,14 +66,14 @@ public class Summary implements Metric {
      * Get the estimated value at the specified quantile.
      * @param quantile Requested quantile
      */
-    public double getQuantil(double quantile) {
+    public double getQuantile(double quantile) {
         return timeWindowQuantile.get(quantile);
     }
 
     /**
      * Get estimated values by configured quantiles.
      */
-    public SortedMap<Double, Double> getQuantilValues() {
+    public SortedMap<Double, Double> getQuantileValues() {
         SortedMap<Double, Double> result = new TreeMap<>();
         for (double quantile : quantiles) {
             result.put(quantile, timeWindowQuantile.get(quantile));
@@ -125,6 +125,7 @@ public class Summary implements Metric {
         public TimeWindow rotate() {
             long elapsedFromLastRotation = System.currentTimeMillis() - lastRotationTimestamp;
 
+            int counter = 0;
             while(elapsedFromLastRotation > rotationDurationMillis) {
                 timeWindow[currentWindow] = new TimeWindow();
                 if (++currentWindow >= timeWindow.length) {
@@ -133,15 +134,17 @@ public class Summary implements Metric {
 
                 elapsedFromLastRotation -= rotationDurationMillis;
                 lastRotationTimestamp += rotationDurationMillis;
+                counter++;
             }
 
+            System.out.println(counter);
             return timeWindow[currentWindow];
         }
     }
 
     private static class TimeWindow {
 
-        private final List<Double> samples = new LinkedList<>();
+        private final List<Double> samples = new ArrayList<>();
 
         public void insert(double value) {
            samples.add(value);

@@ -100,10 +100,10 @@ public final class MetricCollection {
      * @param name A metric name
      * @return {@link Histogram} if metric name is valid.
      */
-    public Summary getOrCreateSummary(String name, double[] qualtiles, int windows, long windowDurationSeconds) {
+    public Summary getOrCreateSummary(String name, double[] quantiles, int windows, long windowDurationSeconds) {
         return (Summary) collection.computeIfAbsent(name, key-> {
             validator.validate(key);
-            return new Summary(key, qualtiles, windows, windowDurationSeconds);
+            return new Summary(key, quantiles, windows, windowDurationSeconds);
         });
     }
 

@@ -113,7 +113,7 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
         double sum = summary.getSum();
         double count = summary.getCount();
 
-        SortedMap<Double, Double> values =  summary.getQuantilValues();
+        SortedMap<Double, Double> values =  summary.getQuantileValues();
         values.forEach((quantile, value) -> {
             final String tag = "quantile=\"" + quantile + "\"";
 
