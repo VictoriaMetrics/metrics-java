@@ -97,6 +97,9 @@ public class Summary implements Metric {
 
         private final long rotationDurationMillis;
 
+        /**
+         * The last rotation timestamp in nanos
+         */
         private long lastRotationTimestamp;
 
         private int currentWindow = 0;
@@ -108,13 +111,12 @@ public class Summary implements Metric {
             }
 
             this.rotationDurationMillis = TimeUnit.SECONDS.toMillis(windowDurationSeconds) / timeWindows;
+            this.lastRotationTimestamp = System.nanoTime();
         }
 
         public synchronized void insert(double value) {
             rotate();
-            for (TimeWindow timeFrame : timeWindow) {
-                timeFrame.insert(value);
-            }
+            timeWindow[currentWindow].insert(value);
         }
 
         public synchronized double get(double phi) {
@@ -123,9 +125,8 @@ public class Summary implements Metric {
         }
 
         public TimeWindow rotate() {
-            long elapsedFromLastRotation = System.currentTimeMillis() - lastRotationTimestamp;
+            long elapsedFromLastRotation = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastRotationTimestamp);
 
-            int counter = 0;
             while(elapsedFromLastRotation > rotationDurationMillis) {
                 timeWindow[currentWindow] = new TimeWindow();
                 if (++currentWindow >= timeWindow.length) {
@@ -134,10 +135,8 @@ public class Summary implements Metric {
 
                 elapsedFromLastRotation -= rotationDurationMillis;
                 lastRotationTimestamp += rotationDurationMillis;
-                counter++;
             }
 
-            System.out.println(counter);
             return timeWindow[currentWindow];
         }
     }
