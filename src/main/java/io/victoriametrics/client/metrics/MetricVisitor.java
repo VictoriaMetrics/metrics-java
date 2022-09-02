@@ -14,4 +14,6 @@ public interface MetricVisitor {
     void visit(Gauge gauge);
 
     void visit(Histogram histogram);
+
+    void visit(Summary summary);
 }
