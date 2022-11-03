@@ -87,7 +87,7 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
                 throw new MetricSerializationException("Unable to serialize Histogram metric: " + prefix, e);
             }
 
-            countTotal.increment();
+            countTotal.add(count);
         });
 
         Pair<String, String> metricPair = splitMetricName(prefix);
