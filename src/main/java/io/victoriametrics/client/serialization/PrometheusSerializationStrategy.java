@@ -80,7 +80,7 @@ public class PrometheusSerializationStrategy implements SerializationStrategy {
                 writer.write("_bucket");
                 writer.write("{");
                 writer.write(labels);
-                writer.write("}");
+                writer.write("} ");
                 writer.write(Double.toString(count));
                 writer.write("\n");
             }  catch (IOException e) {
