@@ -5,6 +5,8 @@
 /.gradle/
 /build/
 
+client-jvm.iml
+
 # Maven
 /target/
 

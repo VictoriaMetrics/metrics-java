@@ -88,9 +88,13 @@ public class Histogram implements Metric {
                 upper++;
             } else {
                 int index = (int) bucketIndex;
-                int decimalBucketIndex = index / BUCKETS_PER_DECIMAL;
-                int offset = index % BUCKETS_PER_DECIMAL;
-                buckets[decimalBucketIndex * offset]++;
+                if (bucketIndex == (double)(index) && index > 0) {
+                    // Edge case for 10^n values, which must go to the lower bucket
+                    // according to Prometheus logic for `le`-based histograms.
+                    // -- from github.com/VictoriaMetrics/metrics v1.18.1
+                    index--;
+                }
+                buckets[index]++;
             }
         } finally {
             mutex.unlock();
