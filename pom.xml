@@ -24,6 +24,7 @@
     <modules>
         <module>metrics</module>
         <module>httpserver</module>
+        <module>benchmarks</module>
     </modules>
 
     <build>
