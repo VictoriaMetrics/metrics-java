@@ -3,16 +3,16 @@ package io.victoriametrics.client.metrics;
 import io.victoriametrics.client.validator.InvalidMetricNameException;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
-public class MetricCollectionTest {
+class MetricRegistryTest {
 
     @Test
     public void createCounterMetricWithBuilder() {
-        MetricCollection collection = MetricCollection.create();
+        MetricRegistry collection = MetricRegistry.create();
         Counter counterNoLabels = collection.createCounter()
                                             .name("foo")
-                                            .then()
                                             .register();
 
         assertEquals("foo", counterNoLabels.getName());
@@ -20,7 +20,6 @@ public class MetricCollectionTest {
         Counter counterWithLabels = collection.createCounter()
                                               .name("foo")
                                               .addLabel("bar", "value1")
-                                              .then()
                                               .register();
 
         assertEquals("foo{bar=\"value1\"}", counterWithLabels.getName());
@@ -28,11 +27,10 @@ public class MetricCollectionTest {
 
     @Test
     public void createGaugeMetricWithBuilder() {
-        MetricCollection collection = MetricCollection.create();
+        MetricRegistry collection = MetricRegistry.create();
         Gauge gaugeNoLabels = collection.createGauge()
                                         .withSupplier(() -> 1.0)
                                         .name("foo")
-                                        .then()
                                         .register();
 
         assertEquals("foo", gaugeNoLabels.getName());
@@ -41,7 +39,6 @@ public class MetricCollectionTest {
                                           .withSupplier(() -> 1.0)
                                           .name("foo")
                                           .addLabel("bar", "value1")
-                                          .then()
                                           .register();
 
         assertEquals("foo{bar=\"value1\"}", gaugeWithLabels.getName());
@@ -49,10 +46,9 @@ public class MetricCollectionTest {
 
     @Test
     public void createHistogramMetricWithBuilder() {
-        MetricCollection collection = MetricCollection.create();
+        MetricRegistry collection = MetricRegistry.create();
         Histogram histogramNoLabels = collection.createHistogram()
                                                 .name("foo")
-                                                .then()
                                                 .register();
 
         assertEquals("foo", histogramNoLabels.getName());
@@ -60,7 +56,6 @@ public class MetricCollectionTest {
         Histogram histogramWithLabels = collection.createHistogram()
                                                   .name("foo")
                                                   .addLabel("bar", "value1")
-                                                  .then()
                                                   .register();
 
         assertEquals("foo{bar=\"value1\"}", histogramWithLabels.getName());
@@ -68,7 +63,7 @@ public class MetricCollectionTest {
 
     @Test
     public void createMetricsByName() {
-        MetricCollection collection = MetricCollection.create();
+        MetricRegistry collection = MetricRegistry.create();
         Counter counter = collection.getOrCreateCounter("foo");
         Gauge gauge = collection.getOrCreateGauge("foo{bar=\"value1\"}", () -> 2.0);
         Histogram histogram = collection.getOrCreateHistogram("foo{bar=\"value1\", baz=\"value2\"}");
@@ -81,14 +76,14 @@ public class MetricCollectionTest {
 
     @Test
     public void createMetricWithInvalidName_thenThrowException() {
-        MetricCollection collection = MetricCollection.create();
+        MetricRegistry collection = MetricRegistry.create();
         assertThrowsExactly(InvalidMetricNameException.class, () -> collection.getOrCreateHistogram("foo{"));
         assertThrowsExactly(InvalidMetricNameException.class, () -> collection.getOrCreateHistogram("foo{label=}"));
     }
 
     @Test
     public void testGetOrCreateMetric() {
-        MetricCollection collection = MetricCollection.create();
+        MetricRegistry collection = MetricRegistry.create();
         Counter counter1 = collection.getOrCreateCounter("foo");
         Counter counter2 = collection.getOrCreateCounter("foo");
         Counter counter3 = collection.getOrCreateCounter("foo");

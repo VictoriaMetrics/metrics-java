@@ -5,7 +5,7 @@
 package io.victoriametrics.client.benchmark;
 
 import io.victoriametrics.client.metrics.Counter;
-import io.victoriametrics.client.metrics.MetricCollection;
+import io.victoriametrics.client.metrics.MetricRegistry;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -30,17 +30,15 @@ public class CounterBenchmark {
 
     @Setup
     public void setup() {
-        MetricCollection metricCollection = MetricCollection.create();
-        this.victoriaMetricsCounter = metricCollection.createCounter()
-                                                      .name("foo")
-                                                      .addLabel("bar", "value")
-                                                      .then()
-                                                      .register();
+        MetricRegistry metricRegistry = MetricRegistry.create();
+        this.victoriaMetricsCounter = metricRegistry.createCounter()
+                                                    .name("foo")
+                                                    .addLabel("bar", "value")
+                                                    .register();
 
-        this.victoriaMetricsCounterNoLabels = metricCollection.createCounter()
-                                                              .name("foo")
-                                                              .then()
-                                                              .register();
+        this.victoriaMetricsCounterNoLabels = metricRegistry.createCounter()
+                                                            .name("foo")
+                                                            .register();
 
         prometheusCounter = io.prometheus.client.Counter.build()
                                                         .name("name")

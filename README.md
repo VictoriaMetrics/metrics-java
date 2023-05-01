@@ -6,17 +6,17 @@
 ```java
 import io.victoriametrics.client.export.HTTPServer;
 import io.victoriametrics.client.metrics.Histogram;
-import io.victoriametrics.client.metrics.MetricCollection;
+import io.victoriametrics.client.metrics.MetricRegistry;
 import io.victoriametrics.client.metrics.Summary;
 
 public class Example {
 
     public static void main(String[] args) throws Exception {
-        MetricCollection collection = MetricCollection.create();
-        Histogram histogram = collection.getOrCreateHistogram("response_size{path=\"/foo/bar\"}");
+        MetricRegistry registry = MetricRegistry.create();
+        Histogram histogram = registry.getOrCreateHistogram("response_size{path=\"/foo/bar\"}");
         histogram.update(Math.random() * 1000);
 
-        Summary summary = collection.getOrCreateSummary("request_duration_seconds{path=\"/foo/bar\"}");
+        Summary summary = registry.getOrCreateSummary("request_duration_seconds{path=\"/foo/bar\"}");
         for (int i = 0; i < 100000; i++) {
             summary.update(i);
         }

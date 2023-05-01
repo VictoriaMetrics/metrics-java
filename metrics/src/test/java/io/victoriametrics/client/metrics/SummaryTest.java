@@ -6,10 +6,9 @@ package io.victoriametrics.client.metrics;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.StringWriter;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Valery Kantor
@@ -18,7 +17,7 @@ public class SummaryTest {
 
     @Test
     public void testSummarySerial() {
-        final Summary summary = MetricCollection.create().getOrCreateSummary("TestSerial");
+        final Summary summary = MetricRegistry.create().getOrCreateSummary("TestSerial");
 
         int total = 2000;
         double sum = 0;
@@ -40,7 +39,7 @@ public class SummaryTest {
     public void testSummarySmallWindow() throws InterruptedException {
         double[] quantiles = new double[] {0.1, 0.2, 0.3};
         long windowDurationSeconds = 5;
-        MetricCollection collection = MetricCollection.create();
+        MetricRegistry collection = MetricRegistry.create();
         final Summary summary = collection.getOrCreateSummary("SmallWindow", quantiles, 2, windowDurationSeconds);
 
         for (int i = 0; i < 10000; i++) {
