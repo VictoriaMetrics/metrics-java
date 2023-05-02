@@ -5,42 +5,65 @@ import io.victoriametrics.client.serialization.SerializationStrategy;
 import io.victoriametrics.client.validator.MetricNameValidator;
 
 import java.io.Writer;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 /**
- * Collection of grouped metrics
+ * The registry groups all metrics.
+ *
  */
-public final class MetricCollection {
+public final class MetricRegistry {
 
     private final Map<String, Metric> collection = new ConcurrentHashMap<>();
     private final MetricNameValidator validator = new MetricNameValidator();
 
     private SerializationStrategy serializationStrategy = new PrometheusSerializationStrategy();
 
-    private MetricCollection() {
-    }
-
-    public static MetricCollection create() {
-        return new MetricCollection();
+    private MetricRegistry() {
     }
 
     /**
-     * Size of collection.
+     * Create a metric registry instance.
+     *
+     * @return {@link MetricRegistry}
+     */
+    public static MetricRegistry create() {
+        return new MetricRegistry();
+    }
+
+    /**
+     * Size of the registry.
      */
     public int size() {
         return collection.size();
     }
 
+    /**
+     * Define a Counter builder.
+     *
+     * @return {@link CounterBuilder}
+     */
     public CounterBuilder createCounter() {
         return new CounterBuilder();
     }
 
+    /**
+     * Define a Gauge builder.
+     *
+     * @return {@link GaugeBuilder}
+     */
     public GaugeBuilder createGauge() {
         return new GaugeBuilder();
     }
 
+    /**
+     * Define a Histogram builder.
+     *
+     * @return {@link HistogramBuilder}
+     */
     public HistogramBuilder createHistogram() {
         return new HistogramBuilder();
     }
@@ -126,7 +149,9 @@ public final class MetricCollection {
 
     public interface MetricBuilder<T> {
 
-        LabelBuilder<T> name(String name);
+        MetricBuilder<T> name(String name);
+
+        MetricBuilder<T> addLabel(String name, String value);
 
         /**
          * Register a metric in collection.
@@ -135,15 +160,50 @@ public final class MetricCollection {
     }
 
     private abstract static class AbstractMetricBuilder<T> implements MetricBuilder<T> {
-        private final NameBuilder<T> nameBuilder = new DefaultBuilder<>(this);
+        private String name;
+        private final Map<String, String> labels = new LinkedHashMap<>();
 
         @Override
-        public LabelBuilder<T> name(String name) {
-            return nameBuilder.name(name);
+        public MetricBuilder<T> name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        @Override
+        public MetricBuilder<T> addLabel(String name, String value) {
+            labels.put(name, value);
+            return this;
         }
 
         protected String getMetricName() {
-            return nameBuilder.build();
+            return name + buildLabels();
+        }
+
+        private String buildLabels() {
+            if (labels.isEmpty()) {
+                return "";
+            }
+
+            int size = labels.size();
+
+            StringBuilder sb = new StringBuilder("{");
+
+            final int[] i = {0};
+            labels.forEach((labelName, value) -> {
+                sb.append(labelName)
+                  .append("=")
+                  .append(("\""))
+                  .append(value)
+                  .append(("\""));
+
+                if (i[0] < size - 1) {
+                    sb.append(", ");
+                }
+                i[0]++;
+            });
+
+            sb.append("}");
+            return sb.toString();
         }
     }
 
@@ -176,90 +236,6 @@ public final class MetricCollection {
         public Histogram register() {
             return (Histogram) collection.computeIfAbsent(getMetricName(), Histogram::new);
         }
-    }
-
-    public static class DefaultBuilder<T> implements NameBuilder<T> {
-        private String name;
-        private final Map<String, String> labels = new LinkedHashMap<>();
-
-        private final MetricBuilder<T> metricBuilder;
-
-        private DefaultBuilder(MetricBuilder<T> metricBuilder) {
-            this.metricBuilder = metricBuilder;
-        }
-
-        @Override
-        public LabelBuilder<T> name(String name) {
-            this.name = name;
-            return new DefaultLabelBuilder(metricBuilder);
-        }
-
-        @Override
-        public String build() {
-            final String labels = buildLabels();
-            return name + labels;
-        }
-
-        private String buildLabels() {
-            if (labels.isEmpty()) {
-                return "";
-            }
-
-            int size = labels.size();
-
-            StringBuilder sb = new StringBuilder("{");
-
-            final int[] i = {0};
-            labels.forEach((name, value) -> {
-                sb.append(name)
-                        .append("=")
-                        .append(("\""))
-                        .append(value)
-                        .append(("\""));
-
-                if (i[0] < size - 1) {
-                    sb.append(", ");
-                }
-                i[0]++;
-            });
-
-            sb.append("}");
-            return sb.toString();
-        }
-
-        public class DefaultLabelBuilder implements LabelBuilder<T> {
-
-            private final MetricBuilder<T> metricBuilder;
-
-            public DefaultLabelBuilder(MetricBuilder<T> metricBuilder) {
-                this.metricBuilder = metricBuilder;
-            }
-
-            @Override
-            public LabelBuilder<T> addLabel(String name, String value) {
-                labels.put(name, value);
-                return this;
-            }
-
-            @Override
-            public MetricBuilder<T> then() {
-                return metricBuilder;
-            }
-        }
-    }
-
-    public interface NameBuilder<T> {
-
-        LabelBuilder<T> name(String name);
-
-        String build();
-
-    }
-
-    public interface LabelBuilder<T> {
-        LabelBuilder<T> addLabel(String name, String value);
-
-        MetricBuilder<T> then();
     }
 
 }

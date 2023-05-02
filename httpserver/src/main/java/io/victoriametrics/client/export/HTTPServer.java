@@ -5,9 +5,12 @@
 package io.victoriametrics.client.export;
 
 import com.sun.net.httpserver.*;
-import io.victoriametrics.client.metrics.MetricCollection;
+import io.victoriametrics.client.metrics.MetricRegistry;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -21,9 +24,9 @@ public class HTTPServer implements Closeable {
 
     private HttpServer server;
 
-    private HTTPServer(HttpServer httpServer, MetricCollection metricCollection, Authenticator authenticator, String context) {
+    private HTTPServer(HttpServer httpServer, MetricRegistry metricRegistry, Authenticator authenticator, String context) {
         this.server = httpServer;
-        HttpContext httpContext = this.server.createContext(context != null ? context : "/metrics", new MeticHttpHandler(metricCollection));
+        HttpContext httpContext = this.server.createContext(context != null ? context : "/metrics", new MeticHttpHandler(metricRegistry));
 
         if (authenticator != null) {
             httpContext.setAuthenticator(authenticator);
@@ -45,10 +48,10 @@ public class HTTPServer implements Closeable {
 
     public static class MeticHttpHandler implements HttpHandler {
 
-        private final MetricCollection metricCollection;
+        private final MetricRegistry metricRegistry;
 
-        public MeticHttpHandler(MetricCollection metricCollection) {
-            this.metricCollection = metricCollection;
+        public MeticHttpHandler(MetricRegistry metricRegistry) {
+            this.metricRegistry = metricRegistry;
         }
 
         @Override
@@ -56,7 +59,7 @@ public class HTTPServer implements Closeable {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             OutputStreamWriter osw = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
 
-            this.metricCollection.write(osw);
+            this.metricRegistry.write(osw);
             osw.flush();
 
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, baos.size());
@@ -71,7 +74,7 @@ public class HTTPServer implements Closeable {
         private int port = 0;
         private String hostname;
         private InetAddress inetAddress;
-        private MetricCollection collection;
+        private MetricRegistry collection;
         private String context;
 
         public Builder withPort(int port) {
@@ -99,7 +102,7 @@ public class HTTPServer implements Closeable {
             return this;
         }
 
-        public Builder withMetricCollection(MetricCollection collection) {
+        public Builder withMetricCollection(MetricRegistry collection) {
             this.collection = collection;
             return this;
         }

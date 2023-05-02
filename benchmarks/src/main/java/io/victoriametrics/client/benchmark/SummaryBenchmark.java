@@ -5,7 +5,7 @@
 package io.victoriametrics.client.benchmark;
 
 import io.victoriametrics.client.metrics.Histogram;
-import io.victoriametrics.client.metrics.MetricCollection;
+import io.victoriametrics.client.metrics.MetricRegistry;
 import io.victoriametrics.client.metrics.Summary;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
@@ -28,15 +28,14 @@ public class SummaryBenchmark {
 
     @Setup
     public void setup() {
-        MetricCollection metricCollection = MetricCollection.create();
+        MetricRegistry metricRegistry = MetricRegistry.create();
 
-        victoriaMetricsSummary = metricCollection.getOrCreateSummary("summary");
+        victoriaMetricsSummary = metricRegistry.getOrCreateSummary("summary");
 
-        victoriaMetricsHistogram = metricCollection.createHistogram()
-                                                   .name("histogram")
-                                                   .addLabel("foo", "bar")
-                                                   .then()
-                                                   .register();
+        victoriaMetricsHistogram = metricRegistry.createHistogram()
+                                                 .name("histogram")
+                                                 .addLabel("foo", "bar")
+                                                 .register();
 
         prometheusSimpleSummary = io.prometheus.client.Summary.build()
                                                               .name("name")
