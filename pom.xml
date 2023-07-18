@@ -25,6 +25,7 @@
         <module>metrics</module>
         <module>httpserver</module>
         <module>benchmarks</module>
+        <module>springboot</module>
     </modules>
 
     <build>
