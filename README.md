@@ -1,6 +1,24 @@
 
 # Java lightweight library for exporting metrics in Prometheus format
 
+### Install 
+
+Checkout the repository and install to local Maven repository.
+
+```shell
+./mvnw install
+```
+
+Add dependecy in to your pom.xml
+
+```xml
+<dependency>
+    <groupId>io.victoriametrics.client</groupId>
+    <artifactId>metrics</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</dependency>
+```
+
 ### Usage
 
 ```java
