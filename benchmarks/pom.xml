@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2022 Victoria Metrics Inc.
+  ~ Copyright (c) 2023 Victoria Metrics Inc.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -11,12 +11,12 @@
 
     <parent>
         <groupId>io.victoriametrics.client</groupId>
-        <version>1.0-SNAPSHOT</version>
         <artifactId>parent</artifactId>
+        <version>1.1</version>
     </parent>
 
     <artifactId>benchmarks</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1</version>
 
     <description>
         Benchmarks of metrics performance and comparison to other systems.
@@ -26,18 +26,18 @@
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
-            <version>1.35</version>
+            <version>1.37</version>
         </dependency>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
-            <version>1.35</version>
+            <version>1.37</version>
         </dependency>
 
         <dependency>
             <groupId>io.victoriametrics.client</groupId>
             <artifactId>metrics</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.1</version>
         </dependency>
 
         <dependency>
