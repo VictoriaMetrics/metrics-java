@@ -7,6 +7,7 @@ Checkout the repository and install to local Maven repository.
 
 ```shell
 ./mvnw install
+./mvnw source:jar install
 ```
 
 Add dependecy in to your pom.xml
@@ -29,7 +30,7 @@ import io.victoriametrics.client.metrics.Summary;
 
 public class Example {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         MetricRegistry registry = MetricRegistry.create();
         Histogram histogram = registry.getOrCreateHistogram("response_size{path=\"/foo/bar\"}");
         histogram.update(Math.random() * 1000);
