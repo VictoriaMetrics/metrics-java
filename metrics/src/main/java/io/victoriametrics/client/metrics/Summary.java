@@ -4,6 +4,7 @@
 
 package io.victoriametrics.client.metrics;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.DoubleAdder;
@@ -17,9 +18,9 @@ public class Summary implements Metric {
 
     public final static double[] DEFAULT_QUANTILES = {0.5, 0.9, 0.97, 0.99, 1.0};
 
-    public final static long DEFAULT_WINDOW_DURATION_SECONDS = TimeUnit.MINUTES.toSeconds(5);
+    public final static Duration DEFAULT_MAX_AGE = Duration.ofMinutes(5);
 
-    public final static int DEFAULT_WINDOWS_COUNT = 2;
+    public final static int DEFAULT_AGE_BUCKETS = 2;
 
     private final String name;
 
@@ -32,14 +33,14 @@ public class Summary implements Metric {
     private final TimeWindowQuantile timeWindowQuantile;
 
     public Summary(String name) {
-        this(name, DEFAULT_QUANTILES, DEFAULT_WINDOWS_COUNT, DEFAULT_WINDOW_DURATION_SECONDS);
+        this(name, DEFAULT_QUANTILES, DEFAULT_MAX_AGE, DEFAULT_AGE_BUCKETS);
     }
 
-    public Summary(String name, double[] quantiles, int windows, long windowDurationSeconds) {
+    public Summary(String name, double[] quantiles, Duration window, int windows) {
         this.name = name;
         validateQuantiles(quantiles);
         this.quantiles = quantiles;
-        this.timeWindowQuantile = new TimeWindowQuantile(windowDurationSeconds, windows);
+        this.timeWindowQuantile = new TimeWindowQuantile(window, windows);
     }
 
     private void validateQuantiles(double[] quantiles) {
@@ -105,13 +106,13 @@ public class Summary implements Metric {
 
         private int currentWindow = 0;
 
-        private TimeWindowQuantile(long windowDurationSeconds, int timeWindows) {
+        private TimeWindowQuantile(Duration window, int timeWindows) {
             this.timeWindow = new TimeWindow[timeWindows];
             for (int i = 0; i < timeWindows; i++) {
                 timeWindow[i] = new TimeWindow();
             }
 
-            this.rotationDurationMillis = TimeUnit.SECONDS.toMillis(windowDurationSeconds) / timeWindows;
+            this.rotationDurationMillis = window.toMillis() / timeWindows;
             this.lastRotationTimestamp = System.nanoTime();
         }
 

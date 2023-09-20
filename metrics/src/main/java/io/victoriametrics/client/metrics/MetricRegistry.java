@@ -5,6 +5,7 @@ import io.victoriametrics.client.serialization.SerializationStrategy;
 import io.victoriametrics.client.validator.MetricNameValidator;
 
 import java.io.Writer;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -123,16 +124,16 @@ public final class MetricRegistry {
      * @param name A metric name
      * @return {@link Histogram} if metric name is valid.
      */
-    public Summary getOrCreateSummary(String name, double[] quantiles, int windows, long windowDurationSeconds) {
+    public Summary getOrCreateSummary(String name, double[] quantiles, int windows, Duration window) {
         return (Summary) collection.computeIfAbsent(name, key-> {
             validator.validate(key);
-            return new Summary(key, quantiles, windows, windowDurationSeconds);
+            return new Summary(key, quantiles, window, windows);
         });
     }
 
     /**
-     * Write metricts
-     * @param writer
+     * Serialize metric values according to {@link #serializationStrategy}
+     * @param writer destination
      */
     public void write(Writer writer) {
         Collection<Metric> metrics = collection.values();
