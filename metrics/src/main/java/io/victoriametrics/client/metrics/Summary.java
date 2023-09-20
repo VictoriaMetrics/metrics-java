@@ -44,7 +44,8 @@ public class Summary implements Metric {
 
     private void validateQuantiles(double[] quantiles) {
         for (double quantile : quantiles) {
-            if (quantile < 0.0 || quantile > 1.0 ) throw new IllegalArgumentException("Quantile must be in range 0 and 1");
+            if (quantile < 0.0 || quantile > 1.0 )
+                throw new IllegalArgumentException("Quantile must be between 0.0 and 1.0");
         }
     }
 
@@ -150,7 +151,7 @@ public class Summary implements Metric {
         }
 
         public double get(double phi) {
-            if (samples.size() == 0) {
+            if (samples.isEmpty()) {
                 return Double.NaN;
             }
 
