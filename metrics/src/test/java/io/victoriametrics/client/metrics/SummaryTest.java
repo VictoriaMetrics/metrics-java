@@ -46,8 +46,8 @@ public class SummaryTest {
             summary.update(123 + i);
         }
 
-        // Wait for window update and verify that the summary has been cleared.
-        Thread.sleep(window.multipliedBy(2).toMillis());
+        Summary.TimeWindowQuantile quantile = summary.timeWindowQuantile;
+        quantile.lastRotationTimestamp -= quantile.rotationDurationMillis * 1000_000;
 
         assertEquals(Double.NaN, summary.getQuantile(0.1));
         assertEquals(Double.NaN, summary.getQuantile(0.2));

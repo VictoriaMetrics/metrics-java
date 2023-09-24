@@ -30,7 +30,7 @@ public class Summary implements Metric {
 
     private final DoubleAdder sum = new DoubleAdder();
 
-    private final TimeWindowQuantile timeWindowQuantile;
+    final TimeWindowQuantile timeWindowQuantile;
 
     public Summary(String name) {
         this(name, DEFAULT_QUANTILES, DEFAULT_MAX_AGE, DEFAULT_AGE_BUCKETS);
@@ -94,17 +94,17 @@ public class Summary implements Metric {
         visitor.visit(this);
     }
 
-    private static class TimeWindowQuantile {
-        private final TimeWindow[] timeWindow;
+    static class TimeWindowQuantile {
+        final TimeWindow[] timeWindow;
 
-        private final long rotationDurationMillis;
+        final long rotationDurationMillis;
 
         /**
          * The last rotation timestamp in nanos
          */
-        private long lastRotationTimestamp;
+        long lastRotationTimestamp;
 
-        private int currentWindow = 0;
+        int currentWindow = 0;
 
         private TimeWindowQuantile(Duration window, int timeWindows) {
             this.timeWindow = new TimeWindow[timeWindows];
