@@ -136,7 +136,7 @@ public class Summary implements Metric {
                 }
 
                 elapsedFromLastRotation -= rotationDurationMillis;
-                lastRotationTimestamp += rotationDurationMillis;
+                lastRotationTimestamp += rotationDurationMillis * 1000_000;
             }
 
             return timeWindow[currentWindow];
