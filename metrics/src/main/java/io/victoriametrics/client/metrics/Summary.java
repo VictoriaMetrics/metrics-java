@@ -6,7 +6,6 @@ package io.victoriametrics.client.metrics;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -97,12 +96,12 @@ public class Summary implements Metric {
     static class TimeWindowQuantile {
         final TimeWindow[] timeWindow;
 
-        final long rotationDurationMillis;
+        final long rotateEachNs;
 
         /**
          * The last rotation timestamp in nanos
          */
-        long lastRotationTimestamp;
+        long lastRotationNs;
 
         int currentWindow = 0;
 
@@ -112,8 +111,8 @@ public class Summary implements Metric {
                 timeWindow[i] = new TimeWindow();
             }
 
-            this.rotationDurationMillis = window.toMillis() / timeWindows;
-            this.lastRotationTimestamp = System.nanoTime();
+            rotateEachNs = window.toNanos() / timeWindows;
+            lastRotationNs = System.nanoTime();
         }
 
         public synchronized void insert(double value) {
@@ -126,17 +125,17 @@ public class Summary implements Metric {
             return window.get(phi);
         }
 
-        public TimeWindow rotate() {
-            long elapsedFromLastRotation = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastRotationTimestamp);
+        TimeWindow rotate() {
+            long elapsedFromLastRotationNs = System.nanoTime() - lastRotationNs;
 
-            while(elapsedFromLastRotation > rotationDurationMillis) {
+            while(elapsedFromLastRotationNs > rotateEachNs) {
                 timeWindow[currentWindow] = new TimeWindow();
                 if (++currentWindow >= timeWindow.length) {
                     currentWindow = 0;
                 }
 
-                elapsedFromLastRotation -= rotationDurationMillis;
-                lastRotationTimestamp += rotationDurationMillis * 1000_000;
+                elapsedFromLastRotationNs -= rotateEachNs;
+                lastRotationNs += rotateEachNs;
             }
 
             return timeWindow[currentWindow];
