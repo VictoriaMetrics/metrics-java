@@ -4,8 +4,8 @@
 
 package io.victoriametrics.client.metrics;
 
+import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.DoubleAdder;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -17,9 +17,9 @@ public class Summary implements Metric {
 
     public final static double[] DEFAULT_QUANTILES = {0.5, 0.9, 0.97, 0.99, 1.0};
 
-    public final static long DEFAULT_WINDOW_DURATION_SECONDS = TimeUnit.MINUTES.toSeconds(5);
+    public final static Duration DEFAULT_MAX_AGE = Duration.ofMinutes(5);
 
-    public final static int DEFAULT_WINDOWS_COUNT = 2;
+    public final static int DEFAULT_AGE_BUCKETS = 2;
 
     private final String name;
 
@@ -29,22 +29,23 @@ public class Summary implements Metric {
 
     private final DoubleAdder sum = new DoubleAdder();
 
-    private final TimeWindowQuantile timeWindowQuantile;
+    final TimeWindowQuantile timeWindowQuantile;
 
     public Summary(String name) {
-        this(name, DEFAULT_QUANTILES, DEFAULT_WINDOWS_COUNT, DEFAULT_WINDOW_DURATION_SECONDS);
+        this(name, DEFAULT_QUANTILES, DEFAULT_MAX_AGE, DEFAULT_AGE_BUCKETS);
     }
 
-    public Summary(String name, double[] quantiles, int windows, long windowDurationSeconds) {
+    public Summary(String name, double[] quantiles, Duration window, int windows) {
         this.name = name;
         validateQuantiles(quantiles);
         this.quantiles = quantiles;
-        this.timeWindowQuantile = new TimeWindowQuantile(windowDurationSeconds, windows);
+        this.timeWindowQuantile = new TimeWindowQuantile(window, windows);
     }
 
     private void validateQuantiles(double[] quantiles) {
         for (double quantile : quantiles) {
-            if (quantile < 0.0 || quantile > 1.0 ) throw new IllegalArgumentException("Quantile must be in range 0 and 1");
+            if (quantile < 0.0 || quantile > 1.0 )
+                throw new IllegalArgumentException("Quantile must be between 0.0 and 1.0");
         }
     }
 
@@ -92,26 +93,26 @@ public class Summary implements Metric {
         visitor.visit(this);
     }
 
-    private static class TimeWindowQuantile {
-        private final TimeWindow[] timeWindow;
+    static class TimeWindowQuantile {
+        final TimeWindow[] timeWindow;
 
-        private final long rotationDurationMillis;
+        final long rotateEachNs;
 
         /**
          * The last rotation timestamp in nanos
          */
-        private long lastRotationTimestamp;
+        long lastRotationNs;
 
-        private int currentWindow = 0;
+        int currentWindow = 0;
 
-        private TimeWindowQuantile(long windowDurationSeconds, int timeWindows) {
+        private TimeWindowQuantile(Duration window, int timeWindows) {
             this.timeWindow = new TimeWindow[timeWindows];
             for (int i = 0; i < timeWindows; i++) {
                 timeWindow[i] = new TimeWindow();
             }
 
-            this.rotationDurationMillis = TimeUnit.SECONDS.toMillis(windowDurationSeconds) / timeWindows;
-            this.lastRotationTimestamp = System.nanoTime();
+            rotateEachNs = window.toNanos() / timeWindows;
+            lastRotationNs = System.nanoTime();
         }
 
         public synchronized void insert(double value) {
@@ -124,17 +125,17 @@ public class Summary implements Metric {
             return window.get(phi);
         }
 
-        public TimeWindow rotate() {
-            long elapsedFromLastRotation = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastRotationTimestamp);
+        TimeWindow rotate() {
+            long elapsedFromLastRotationNs = System.nanoTime() - lastRotationNs;
 
-            while(elapsedFromLastRotation > rotationDurationMillis) {
+            while(elapsedFromLastRotationNs > rotateEachNs) {
                 timeWindow[currentWindow] = new TimeWindow();
                 if (++currentWindow >= timeWindow.length) {
                     currentWindow = 0;
                 }
 
-                elapsedFromLastRotation -= rotationDurationMillis;
-                lastRotationTimestamp += rotationDurationMillis;
+                elapsedFromLastRotationNs -= rotateEachNs;
+                lastRotationNs += rotateEachNs;
             }
 
             return timeWindow[currentWindow];
@@ -150,7 +151,7 @@ public class Summary implements Metric {
         }
 
         public double get(double phi) {
-            if (samples.size() == 0) {
+            if (samples.isEmpty()) {
                 return Double.NaN;
             }
 

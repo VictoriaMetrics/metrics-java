@@ -6,7 +6,7 @@ package io.victoriametrics.client.metrics;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -37,17 +37,18 @@ public class SummaryTest {
 
     @Test
     public void testSummarySmallWindow() throws InterruptedException {
-        double[] quantiles = new double[] {0.1, 0.2, 0.3};
-        long windowDurationSeconds = 5;
+        double[] quantiles = new double[]{0.1, 0.2, 0.3};
         MetricRegistry collection = MetricRegistry.create();
-        final Summary summary = collection.getOrCreateSummary("SmallWindow", quantiles, 2, windowDurationSeconds);
+        Duration window = Duration.ofSeconds(5);
+        Summary summary = collection.getOrCreateSummary("SmallWindow", quantiles, 2, window);
 
         for (int i = 0; i < 10000; i++) {
-            summary.update(123);
+            summary.update(123 + i);
         }
 
-        // Wait for window update and verify that the summary has been cleared.
-        Thread.sleep(2 * TimeUnit.SECONDS.toMillis(windowDurationSeconds));
+        Summary.TimeWindowQuantile quantile = summary.timeWindowQuantile;
+        quantile.lastRotationNs -= quantile.rotateEachNs;
+
         assertEquals(Double.NaN, summary.getQuantile(0.1));
         assertEquals(Double.NaN, summary.getQuantile(0.2));
         assertEquals(Double.NaN, summary.getQuantile(0.3));
