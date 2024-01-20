@@ -21,6 +21,7 @@ Thumbs.db
 /.idea/*
 !/.idea/copyright
 !/.idea/inspectionProfiles
+/.run
 
 # Log file
 *.log

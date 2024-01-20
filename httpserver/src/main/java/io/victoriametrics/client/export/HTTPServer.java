@@ -5,12 +5,12 @@
 package io.victoriametrics.client.export;
 
 import com.sun.net.httpserver.*;
+import io.victoriametrics.client.metrics.Counter;
 import io.victoriametrics.client.metrics.MetricRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -18,15 +18,25 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Expose metrics with a plain Java HttpServer.
+ *
  * @author Valery Kantor
  */
 public class HTTPServer implements Closeable {
+    private static final Logger logger = LoggerFactory.getLogger(HTTPServer.class);
 
-    private HttpServer server;
+    private final HttpServer server;
 
     private HTTPServer(HttpServer httpServer, MetricRegistry metricRegistry, Authenticator authenticator, String context) {
-        this.server = httpServer;
-        HttpContext httpContext = this.server.createContext(context != null ? context : "/metrics", new MeticHttpHandler(metricRegistry));
+        if (metricRegistry == null) {
+            throw new IllegalArgumentException("metricRegistry is null");
+        }
+
+        server = httpServer;
+
+        if (context == null) {
+            context = "/metrics";
+        }
+        HttpContext httpContext = server.createContext(context, new MetricHttpHandler(metricRegistry, context));
 
         if (authenticator != null) {
             httpContext.setAuthenticator(authenticator);
@@ -34,7 +44,7 @@ public class HTTPServer implements Closeable {
     }
 
     public void start() {
-        this.server.start();
+        server.start();
     }
 
     public void stop() {
@@ -43,35 +53,49 @@ public class HTTPServer implements Closeable {
 
     @Override
     public void close() {
-        this.server.stop(0);
+        server.stop(0);
     }
 
-    public static class MeticHttpHandler implements HttpHandler {
+    public static class MetricHttpHandler implements HttpHandler {
 
         private final MetricRegistry metricRegistry;
 
-        public MeticHttpHandler(MetricRegistry metricRegistry) {
+        private final Counter requestsCount;
+
+        public MetricHttpHandler(MetricRegistry metricRegistry, String context) {
             this.metricRegistry = metricRegistry;
+
+            this.requestsCount = metricRegistry.createCounter()
+                    .name("http_server_requests_total")
+                    .addLabel("context", context)
+                    .register();
         }
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            requestsCount.inc();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            OutputStreamWriter osw = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
 
-            this.metricRegistry.write(osw);
-            osw.flush();
+            try {
+                OutputStreamWriter osw = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
+                metricRegistry.write(osw);
+                osw.flush();
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                byte[] bytes = e.getMessage().getBytes();
+                exchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, bytes.length);
+                exchange.getResponseBody().write(bytes);
+            }
 
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, baos.size());
             baos.writeTo(exchange.getResponseBody());
-            osw.close();
             exchange.close();
         }
     }
 
     public static class Builder {
         private Authenticator authenticator;
-        private int port = 0;
+        private int port = 80;
         private String hostname;
         private InetAddress inetAddress;
         private MetricRegistry collection;
@@ -108,24 +132,33 @@ public class HTTPServer implements Closeable {
         }
 
         public HTTPServer build() throws IOException {
-            InetSocketAddress inetSocketAddress;
-            if (inetAddress != null) {
-                assertNull(hostname, "'inetAddress' and 'hostname' connot be used at the same time");
-                inetSocketAddress = new InetSocketAddress(inetAddress, port);
-            } else if (hostname != null) {
-                inetSocketAddress = new InetSocketAddress(hostname, port);
-            } else {
-                inetSocketAddress = new InetSocketAddress(port);
+            if (inetAddress != null && hostname != null) {
+                throw new IllegalStateException("'inetAddress' and 'hostname' connot be used at the same time");
             }
-            HttpServer httpsServer = HttpServer
-                    .create(inetSocketAddress, 0);
+
+            if (inetAddress == null && hostname == null) {
+                hostname = "localhost";
+            }
+
+            if (inetAddress == null) {
+                inetAddress = InetAddress.getByName(hostname);
+            }
+
+            var inetSocketAddress = new InetSocketAddress(inetAddress, port);
+            HttpServer httpsServer = HttpServer.create(inetSocketAddress, 0);
 
             return new HTTPServer(httpsServer, collection, authenticator, context);
         }
     }
 
-    private static void assertNull(Object obj, String message) {
-        if (obj != null) throw new IllegalStateException(message);
+    public static void main(String[] args) throws IOException {
+        var builder = new HTTPServer.Builder()
+                .withMetricCollection(MetricRegistry.create())
+                .withHostname("::1")
+                .withPort(8080)
+                .withContext("/metrics");
+        //noinspection resource
+        var server = builder.build();
+        server.start();
     }
-
 }
