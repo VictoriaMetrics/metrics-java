@@ -12,11 +12,11 @@
     <parent>
         <groupId>io.victoriametrics.client</groupId>
         <artifactId>parent</artifactId>
-        <version>1.1</version>
+        <version>1.2</version>
     </parent>
 
     <artifactId>benchmarks</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
 
     <description>
         Benchmarks of metrics performance and comparison to other systems.
@@ -37,7 +37,7 @@
         <dependency>
             <groupId>io.victoriametrics.client</groupId>
             <artifactId>metrics</artifactId>
-            <version>1.1</version>
+            <version>1.2</version>
         </dependency>
 
         <dependency>
