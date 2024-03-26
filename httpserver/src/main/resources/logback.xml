@@ -1,0 +1,20 @@
+<configuration>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- encoders are by default assigned the type
+			 ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSSZ} [%thread] %-5level %logger - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!-- For custom loggers see com.baraded.robocalltree.Log.kt -->
+
+	<root level="INFO">
+		<appender-ref ref="STDOUT"/>
+	</root>
+
+	<logger name="ch.qos.logback" level="INFO"/>
+	<logger name="com.victoriametrics" level="INFO"/>
+
+</configuration>
